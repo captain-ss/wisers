@@ -3,14 +3,27 @@ const router = express.Router();
 const Note = require('../models/Note'); 
 //Get all
 router.get('/notes', async (req, res) => {
+  const page = parseInt(req.query.page) || 1; // Get page number from query, default to 1
+  const limit = 6; // Number of notes per page
+
   try {
-    const notes = await Note.find();
-    res.status(200).json(notes);
+    const totalNotes = await Note.countDocuments();
+    const totalPages = Math.ceil(totalNotes / limit);
+
+    const notes = await Note.find()
+      .sort({ pinned: -1, _id: -1 }) // Sort by pinned (descending) and _id (descending)
+      .limit(limit)
+      .skip((page - 1) * limit);
+
+    res.json({
+      notes,
+      totalPages,
+      currentPage: page,
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 });
-
 // Create  new note
 router.post('/notes', async (req, res) => {
   const newNote = new Note(req.body);
