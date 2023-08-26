@@ -1,16 +1,15 @@
 const express = require('express');
 const router = express.Router();
 const Note = require('../models/Note'); 
-//Get all
-// Update the "Get all notes" route to search by title
+//Get all by note page and title
 router.get('/notes', async (req, res) => {
   const page = parseInt(req.query.page) || 1;
   const limit = 6;
 
   try {
-    const { title } = req.query; // Extract the title query parameter
+    const { title } = req.query; 
 
-    const query = title ? { title: new RegExp(title, 'i') } : {}; // Build the search query
+    const query = title ? { title: new RegExp(title, 'i') } : {}; 
 
     const totalNotes = await Note.countDocuments(query);
     const totalPages = Math.ceil(totalNotes / limit);
