@@ -2,16 +2,21 @@ const express = require('express');
 const router = express.Router();
 const Note = require('../models/Note'); 
 //Get all
+// Update the "Get all notes" route to search by title
 router.get('/notes', async (req, res) => {
-  const page = parseInt(req.query.page) || 1; // Get page number from query, default to 1
-  const limit = 6; // Number of notes per page
+  const page = parseInt(req.query.page) || 1;
+  const limit = 6;
 
   try {
-    const totalNotes = await Note.countDocuments();
+    const { title } = req.query; // Extract the title query parameter
+
+    const query = title ? { title: new RegExp(title, 'i') } : {}; // Build the search query
+
+    const totalNotes = await Note.countDocuments(query);
     const totalPages = Math.ceil(totalNotes / limit);
 
-    const notes = await Note.find()
-      .sort({ pinned: -1, _id: -1 }) // Sort by pinned (descending) and _id (descending)
+    const notes = await Note.find(query)
+      .sort({ pinned: -1, _id: -1 })
       .limit(limit)
       .skip((page - 1) * limit);
 
@@ -24,6 +29,7 @@ router.get('/notes', async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 });
+
 // Create  new note
 router.post('/notes', async (req, res) => {
   const newNote = new Note(req.body);
